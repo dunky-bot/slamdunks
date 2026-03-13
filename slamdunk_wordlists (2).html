@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlamDunk Wordlists</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --orange: #FF6B1A;
+    --orange-dark: #cc4f00;
+    --black: #0a0a0a;
+    --dark: #141414;
+    --panel: #1c1c1c;
+    --border: #2e2e2e;
+    --text: #f0ede6;
+    --muted: #888;
+    --green: #39d98a;
+    --blue: #4ea8f7;
+    --yellow: #f7c948;
+    --court-line: rgba(255, 107, 26, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Court lines background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg, var(--court-line) 0px, transparent 1px, transparent 80px, var(--court-line) 81px),
+      repeating-linear-gradient(0deg, var(--court-line) 0px, transparent 1px, transparent 80px, var(--court-line) 81px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Center circle */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 320px;
+    border: 2px solid var(--court-line);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+
+  .ball-icon {
+    width: 52px;
+    height: 52px;
+    animation: spin 12s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  h1 {
+    font-family: 'Teko', sans-serif;
+    font-size: clamp(48px, 8vw, 80px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  h1 span.slam { color: var(--orange); }
+  h1 span.dunk { color: var(--text); }
+
+  .tagline {
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* PANELS */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 640px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .panel.drag-over {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 2px rgba(255,107,26,0.3);
+  }
+
+  .panel-header {
+    background: var(--dark);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-label {
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange);
+  }
+
+  .word-count {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .drop-zone {
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 160px;
+  }
+
+  .drop-zone:hover { background: rgba(255,107,26,0.04); }
+
+  .drop-icon {
+    opacity: 0.3;
+    transition: opacity 0.2s;
+  }
+  .drop-zone:hover .drop-icon { opacity: 0.6; }
+
+  .drop-text {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  .drop-text strong {
+    display: block;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .file-input { display: none; }
+
+  .loaded-file {
+    padding: 20px;
+    display: none;
+  }
+
+  .file-name {
+    font-size: 13px;
+    color: var(--orange);
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .word-preview {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-height: 100px;
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, black 60%, transparent);
+    word-break: break-all;
+  }
+
+  .clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px 10px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    font-family: 'Barlow', sans-serif;
+    text-transform: uppercase;
+  }
+  .clear-btn:hover { border-color: #e55; color: #e55; }
+
+  /* ACTION */
+  .action-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .dunk-btn {
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    font-family: 'Teko', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px 60px;
+    cursor: pointer;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 24px rgba(255,107,26,0.35);
+  }
+
+  .dunk-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 40%;
+    height: 200%;
+    background: rgba(255,255,255,0.2);
+    transform: skewX(-20deg);
+    transition: left 0.4s;
+  }
+
+  .dunk-btn:hover::before { left: 150%; }
+  .dunk-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,107,26,0.5); }
+  .dunk-btn:active { transform: translateY(0); }
+  .dunk-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* RESULTS */
+  .results {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: none;
+    overflow: hidden;
+  }
+
+  .results-header {
+    background: var(--dark);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 12px;
+  }
+
+  .results-label {
+    font-family: 'Teko', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .match-badge {
+    background: var(--green);
+    color: var(--black);
+    font-family: 'Teko', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 2px;
+  }
+
+  .download-btn {
+    background: none;
+    border: 1.5px solid var(--green);
+    color: var(--green);
+    font-family: 'Teko', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 22px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  .download-btn:hover { background: var(--green); color: var(--black); }
+
+  .results-words {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .results-words::-webkit-scrollbar { width: 6px; }
+  .results-words::-webkit-scrollbar-track { background: var(--dark); }
+  .results-words::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .word-chip {
+    background: rgba(57, 217, 138, 0.1);
+    border: 1px solid rgba(57, 217, 138, 0.25);
+    color: var(--green);
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    font-weight: 500;
+    animation: chipIn 0.3s ease both;
+  }
+
+  @keyframes chipIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .no-match {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  /* TABS */
+  .result-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'Teko', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+  .tab-btn.active-green { color: var(--green); border-bottom-color: var(--green); }
+  .tab-btn.active-blue  { color: var(--blue);  border-bottom-color: var(--blue); }
+  .tab-btn.active-yellow { color: var(--yellow); border-bottom-color: var(--yellow); }
+
+  .tab-badge {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 2px;
+  }
+  .badge-green  { background: var(--green);  color: var(--black); }
+  .badge-blue   { background: var(--blue);   color: var(--black); }
+  .badge-yellow { background: var(--yellow); color: var(--black); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .chip-blue {
+    background: rgba(78, 168, 247, 0.1);
+    border: 1px solid rgba(78, 168, 247, 0.25);
+    color: var(--blue);
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    font-weight: 500;
+    animation: chipIn 0.3s ease both;
+  }
+
+  .chip-blue-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(78,168,247,0.5);
+    margin-bottom: 6px;
+    padding: 0 2px;
+  }
+
+  .chip-yellow {
+    background: rgba(247, 201, 72, 0.1);
+    border: 1px solid rgba(247, 201, 72, 0.25);
+    color: var(--yellow);
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    font-weight: 500;
+    animation: chipIn 0.3s ease both;
+  }
+
+  .unique-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .unique-col {
+    background: var(--panel);
+    padding: 16px 20px;
+  }
+
+  .unique-col-header {
+    font-family: 'Teko', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .unique-col-header.a { color: var(--blue); }
+  .unique-col-header.b { color: var(--yellow); }
+
+  .unique-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .unique-words::-webkit-scrollbar { width: 4px; }
+  .unique-words::-webkit-scrollbar-track { background: var(--dark); }
+  .unique-words::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .tab-download-row {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .download-btn-sm {
+    background: none;
+    border: 1.5px solid;
+    font-family: 'Teko', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+
+  .download-btn-sm.green { border-color: var(--green); color: var(--green); }
+  .download-btn-sm.green:hover { background: var(--green); color: var(--black); }
+  .download-btn-sm.blue  { border-color: var(--blue);  color: var(--blue); }
+  .download-btn-sm.blue:hover  { background: var(--blue);  color: var(--black); }
+  .download-btn-sm.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .download-btn-sm.yellow:hover { background: var(--yellow); color: var(--black); }
+
+  @media (max-width: 540px) {
+    .unique-columns { grid-template-columns: 1fr; }
+  }
+
+  /* OPTIONS */
+  .options {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    letter-spacing: 0.5px;
+  }
+
+  .option-label input[type="checkbox"] {
+    accent-color: var(--orange);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+
+  .option-label:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <svg class="ball-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="26" cy="26" r="24" fill="#FF6B1A" stroke="#cc4f00" stroke-width="2"/>
+        <path d="M26 2 C26 2 26 50 26 50" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M2 26 C2 26 50 26 50 26" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M6 14 C16 18 20 26 16 38" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M46 14 C36 18 32 26 36 38" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h1><span class="slam">Slam</span><span class="dunk">Dunk</span></h1>
+    </div>
+    <p class="tagline">Wordlist Comparator &mdash; Find Your Duplicates</p>
+  </header>
+
+  <div class="panels">
+    <!-- Panel A -->
+    <div class="panel" id="panelA">
+      <div class="panel-header">
+        <span class="panel-label">List A</span>
+        <span class="word-count" id="countA">—</span>
+      </div>
+      <div class="drop-zone" id="dropA" onclick="document.getElementById('fileA').click()">
+        <svg class="drop-icon" width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect x="4" y="4" width="28" height="28" rx="3" stroke="#f0ede6" stroke-width="2"/>
+          <path d="M12 18h12M18 12v12" stroke="#f0ede6" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="drop-text">
+          <strong>Drop .txt file here</strong>
+          or click to browse
+        </div>
+      </div>
+      <div class="loaded-file" id="loadedA">
+        <div class="file-name" id="fileNameA">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 1h6l3 3v9H3V1z" stroke="#FF6B1A" stroke-width="1.2"/><path d="M9 1v3h3" stroke="#FF6B1A" stroke-width="1.2"/></svg>
+          <span></span>
+          <button class="clear-btn" onclick="clearFile('A')">Clear</button>
+        </div>
+        <div class="word-preview" id="previewA"></div>
+      </div>
+      <input type="file" class="file-input" id="fileA" accept=".txt" onchange="loadFile(this, 'A')">
+    </div>
+
+    <!-- Panel B -->
+    <div class="panel" id="panelB">
+      <div class="panel-header">
+        <span class="panel-label">List B</span>
+        <span class="word-count" id="countB">—</span>
+      </div>
+      <div class="drop-zone" id="dropB" onclick="document.getElementById('fileB').click()">
+        <svg class="drop-icon" width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect x="4" y="4" width="28" height="28" rx="3" stroke="#f0ede6" stroke-width="2"/>
+          <path d="M12 18h12M18 12v12" stroke="#f0ede6" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="drop-text">
+          <strong>Drop .txt file here</strong>
+          or click to browse
+        </div>
+      </div>
+      <div class="loaded-file" id="loadedB">
+        <div class="file-name" id="fileNameB">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 1h6l3 3v9H3V1z" stroke="#FF6B1A" stroke-width="1.2"/><path d="M9 1v3h3" stroke="#FF6B1A" stroke-width="1.2"/></svg>
+          <span></span>
+          <button class="clear-btn" onclick="clearFile('B')">Clear</button>
+        </div>
+        <div class="word-preview" id="previewB"></div>
+      </div>
+      <input type="file" class="file-input" id="fileB" accept=".txt" onchange="loadFile(this, 'B')">
+    </div>
+  </div>
+
+  <!-- Options -->
+  <div class="options">
+    <label class="option-label">
+      <input type="checkbox" id="caseInsensitive" checked>
+      Case-insensitive comparison
+    </label>
+    <label class="option-label">
+      <input type="checkbox" id="sortOutput" checked>
+      Sort output A–Z
+    </label>
+    <label class="option-label">
+      <input type="checkbox" id="trimWhitespace" checked>
+      Trim whitespace
+    </label>
+    <label class="option-label" title="Ignores everything to the right of | on each line">
+      <input type="checkbox" id="voidMap">
+      Void map <span style="opacity:0.4;font-size:11px;letter-spacing:0">( strips |pipe )</span>
+    </label>
+  </div>
+
+  <!-- Action -->
+  <div class="action-row">
+    <button class="dunk-btn" id="dunkBtn" onclick="findDuplicates()" disabled>
+      🏀 SLAM DUNK IT
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="results-header">
+      <div class="results-label" style="font-family:'Teko',sans-serif;font-size:22px;font-weight:600;letter-spacing:2px;text-transform:uppercase;">
+        Results
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="result-tabs">
+      <button class="tab-btn active-green" id="tab-dupes" onclick="switchTab('dupes')">
+        Duplicates <span class="tab-badge badge-green" id="badgeDupes">0</span>
+      </button>
+      <button class="tab-btn" id="tab-unique" onclick="switchTab('unique')">
+        Unique Only <span class="tab-badge badge-blue" id="badgeUnique">0</span>
+      </button>
+    </div>
+
+    <!-- Duplicates panel -->
+    <div class="tab-panel active" id="panel-dupes">
+      <div id="resultsBody"></div>
+      <div class="tab-download-row">
+        <button class="download-btn-sm green" onclick="downloadList(lastDuplicates, 'slamdunk_duplicates.txt')">↓ Download Duplicates</button>
+      </div>
+    </div>
+
+    <!-- Unique panel -->
+    <div class="tab-panel" id="panel-unique">
+      <div class="unique-columns">
+        <div class="unique-col">
+          <div class="unique-col-header a">Only in List A <span style="opacity:0.5;font-size:12px" id="countOnlyA"></span></div>
+          <div class="unique-words" id="onlyAWords"></div>
+        </div>
+        <div class="unique-col">
+          <div class="unique-col-header b" style="color:var(--yellow)">Only in List B <span style="opacity:0.5;font-size:12px" id="countOnlyB"></span></div>
+          <div class="unique-words" id="onlyBWords"></div>
+        </div>
+      </div>
+      <div class="tab-download-row">
+        <button class="download-btn-sm blue" onclick="downloadList(lastUniqueA, 'slamdunk_only_in_A.txt')">↓ Only in A</button>
+        <button class="download-btn-sm yellow" onclick="downloadList(lastUniqueB, 'slamdunk_only_in_B.txt')">↓ Only in B</button>
+        <button class="download-btn-sm green" onclick="downloadList([...lastUniqueA, ...lastUniqueB], 'slamdunk_all_unique.txt')">↓ All Unique</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const words = { A: [], B: [] };
+  let lastDuplicates = [];
+  let lastUniqueA = [];
+  let lastUniqueB = [];
+
+  function loadFile(input, side) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => processText(e.target.result, side, file.name);
+    reader.readAsText(file);
+  }
+
+  function processText(text, side, filename) {
+    let list = text.split(/\r?\n|,|\t/).map(w => w.trim()).filter(w => w.length > 0);
+    words[side] = list;
+
+    document.getElementById(`drop${side}`).style.display = 'none';
+    const loaded = document.getElementById(`loaded${side}`);
+    loaded.style.display = 'block';
+
+    document.getElementById(`fileName${side}`).querySelector('span').textContent = filename;
+    document.getElementById(`preview${side}`).textContent = list.join(', ');
+    document.getElementById(`count${side}`).textContent = list.length + ' words';
+
+    checkReady();
+  }
+
+  function clearFile(side) {
+    words[side] = [];
+    document.getElementById(`drop${side}`).style.display = 'flex';
+    document.getElementById(`loaded${side}`).style.display = 'none';
+    document.getElementById(`file${side}`).value = '';
+    document.getElementById(`count${side}`).textContent = '—';
+    document.getElementById('results').style.display = 'none';
+    checkReady();
+  }
+
+  function checkReady() {
+    const ready = words.A.length > 0 && words.B.length > 0;
+    document.getElementById('dunkBtn').disabled = !ready;
+  }
+
+  function findDuplicates() {
+    const caseInsensitive = document.getElementById('caseInsensitive').checked;
+    const sortOutput = document.getElementById('sortOutput').checked;
+    const trim = document.getElementById('trimWhitespace').checked;
+    const voidMap = document.getElementById('voidMap').checked;
+
+    let listA = words.A.slice();
+    let listB = words.B.slice();
+
+    if (voidMap) {
+      listA = listA.map(w => w.includes('|') ? w.split('|')[0] : w);
+      listB = listB.map(w => w.includes('|') ? w.split('|')[0] : w);
+    }
+    if (trim) {
+      listA = listA.map(w => w.trim());
+      listB = listB.map(w => w.trim());
+    }
+    // filter out any entries that became empty after processing
+    listA = listA.filter(w => w.length > 0);
+    listB = listB.filter(w => w.length > 0);
+
+    const normalize = w => caseInsensitive ? w.toLowerCase() : w;
+
+    const setA = new Set(listA.map(normalize));
+    const setB = new Set(listB.map(normalize));
+
+    // Duplicates
+    let dups = [];
+    const seenDup = new Set();
+    for (const word of listA) {
+      const key = normalize(word);
+      if (setB.has(key) && !seenDup.has(key)) {
+        dups.push(word);
+        seenDup.add(key);
+      }
+    }
+
+    // Only in A
+    let onlyA = [];
+    const seenA = new Set();
+    for (const word of listA) {
+      const key = normalize(word);
+      if (!setB.has(key) && !seenA.has(key)) {
+        onlyA.push(word);
+        seenA.add(key);
+      }
+    }
+
+    // Only in B
+    let onlyB = [];
+    const seenB = new Set();
+    for (const word of listB) {
+      const key = normalize(word);
+      if (!setA.has(key) && !seenB.has(key)) {
+        onlyB.push(word);
+        seenB.add(key);
+      }
+    }
+
+    if (sortOutput) {
+      const sort = arr => arr.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+      sort(dups); sort(onlyA); sort(onlyB);
+    }
+
+    lastDuplicates = dups;
+    lastUniqueA = onlyA;
+    lastUniqueB = onlyB;
+
+    const btn = document.getElementById('dunkBtn');
+    btn.textContent = '🎯 DUNKED!';
+    setTimeout(() => btn.textContent = '🏀 SLAM DUNK IT', 1500);
+
+    renderResults(dups, onlyA, onlyB);
+  }
+
+  function renderResults(dups, onlyA, onlyB) {
+    const resultsEl = document.getElementById('results');
+    resultsEl.style.display = 'block';
+
+    // Update badges
+    document.getElementById('badgeDupes').textContent = dups.length;
+    document.getElementById('badgeUnique').textContent = onlyA.length + onlyB.length;
+
+    // Duplicates tab
+    const body = document.getElementById('resultsBody');
+    if (dups.length === 0) {
+      body.innerHTML = '<div class="no-match">No duplicate words found between the two lists.</div>';
+    } else {
+      body.innerHTML = '<div class="results-words">' +
+        dups.map((w, i) =>
+          `<span class="word-chip" style="animation-delay:${Math.min(i*20,600)}ms">${escapeHtml(w)}</span>`
+        ).join('') + '</div>';
+    }
+
+    // Unique tab
+    document.getElementById('countOnlyA').textContent = `(${onlyA.length})`;
+    document.getElementById('countOnlyB').textContent = `(${onlyB.length})`;
+
+    const renderChips = (words, cls) => words.length
+      ? words.map((w, i) => `<span class="${cls}" style="animation-delay:${Math.min(i*15,500)}ms">${escapeHtml(w)}</span>`).join('')
+      : `<span style="color:var(--muted);font-size:13px">None</span>`;
+
+    document.getElementById('onlyAWords').innerHTML = renderChips(onlyA, 'chip-blue');
+    document.getElementById('onlyBWords').innerHTML = renderChips(onlyB, 'chip-yellow');
+
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function switchTab(tab) {
+    document.getElementById('panel-dupes').classList.toggle('active', tab === 'dupes');
+    document.getElementById('panel-unique').classList.toggle('active', tab === 'unique');
+
+    const dupeBtn = document.getElementById('tab-dupes');
+    const uniqBtn = document.getElementById('tab-unique');
+
+    dupeBtn.className = 'tab-btn' + (tab === 'dupes' ? ' active-green' : '');
+    uniqBtn.className = 'tab-btn' + (tab === 'unique' ? ' active-blue' : '');
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function downloadList(list, filename) {
+    if (!list || !list.length) return;
+    const blob = new Blob([list.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Drag and drop
+  ['A', 'B'].forEach(side => {
+    const panel = document.getElementById(`panel${side}`);
+    panel.addEventListener('dragover', e => { e.preventDefault(); panel.classList.add('drag-over'); });
+    panel.addEventListener('dragleave', () => panel.classList.remove('drag-over'));
+    panel.addEventListener('drop', e => {
+      e.preventDefault();
+      panel.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        reader.onload = ev => processText(ev.target.result, side, file.name);
+        reader.readAsText(file);
+      }
+    });
+  });
+</script>
+</body>
+</html>
